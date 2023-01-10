@@ -52,6 +52,7 @@ class TitlePanel extends JPanel{
     }
 }
 
+// 10x10
 class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 화면 구성 */
     JPanelChange pc;
     GridBagLayout grid;
@@ -250,6 +251,7 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
     }
 }
 
+// 15x15
 class Panel15 extends JPanel implements minesweeper{
     JPanelChange pc;
     GridBagLayout grid;
@@ -338,6 +340,7 @@ class Panel15 extends JPanel implements minesweeper{
     }
 }
 
+//20x20
 class Panel20 extends JPanel implements minesweeper{
     JPanelChange pc;
     GridBagLayout grid;
