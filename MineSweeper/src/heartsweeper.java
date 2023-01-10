@@ -471,7 +471,7 @@ public class heartsweeper extends JFrame {
     public void createMenu(){   // 메뉴 바 만드는 함수
         JMenuBar mb = new JMenuBar();
         String[] barName = {"Game", "Help"};
-        String[][] subItem = {{"new game", "10 x 10", "15 x 15", "20 x 20"}, {"도움말"}};
+        String[][] subItem = {{"Home", "10 x 10", "15 x 15", "20 x 20"}, {"도움말"}};
         JMenu[] menu = new JMenu[3];
         JMenuItem[][] menuItems = new JMenuItem[3][];
         for(int i=0;i<barName.length;i++){
