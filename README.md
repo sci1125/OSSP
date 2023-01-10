@@ -4,3 +4,5 @@
 https://github.com/yunday/JavaMiniProject
 
 ## 작업 현황
+23.01.08 코드 분석
+23.01.10 오른쪽 클릭 시 깃발 모양 생성
