@@ -13,8 +13,6 @@ interface minesweeper{
     void addGrid(Component c, int x, int y, int w);
 }
 
-//주석
-//dsdasda
 class TitlePanel extends JPanel{
     JPanelChange pc;
     JButton[] btn = new JButton[3];
