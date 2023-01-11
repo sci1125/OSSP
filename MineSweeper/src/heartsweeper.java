@@ -153,6 +153,7 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
                 JButton b = (JButton)e.getSource();
                 if(!tx.getText().equals("0")&&b.isEnabled()){
                     b.setEnabled(false);
+                    bntActionListener.setIcon(b, "bow.png");
                     tx.setText(String.valueOf(Integer.parseInt(tx.getText())-1));
                 }
                 int state=1;
