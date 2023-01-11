@@ -12,6 +12,7 @@ interface minesweeper{
     int getMine(int row, int col);
     void addGrid(Component c, int x, int y, int w);
 }
+//1234
 
 class TitlePanel extends JPanel{
     JPanelChange pc;
