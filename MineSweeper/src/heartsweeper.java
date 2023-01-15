@@ -431,22 +431,129 @@ class Panel20 extends JPanel implements minesweeper{
     }
 }
 
+//custom size 로 지뢰찾기 그리드를 만드는 패널 클래스
+class PanelCustom extends JPanel implements minesweeper{
+	JPanelChange pc;
+	GridBagLayout grid;
+	GridBagConstraints gbc = new GridBagConstraints();
+	JButton[][] btn;
+	String[][] arr;
+	int customRow = 0; // 가로 규격 Row
+	int customCol = 0; // 세로 규격 Column
+ 
+	public PanelCustom(JPanelChange pc, int row, int col){
+		grid = new GridBagLayout();
+		setLayout(grid);
+		this.pc = pc;           
+		customRow = row;
+		customCol = col;
+		btn = new JButton[customRow][customCol];
+		arr = new String[customRow][customCol];      
+		setScreen();
+	}
+	@Override
+	public void setScreen(){
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weightx=1.0;
+		gbc.weighty=1.0;
+
+		JTextField tx = new JTextField(20);
+		tx.setText(String.valueOf((customRow * customCol) / 9));
+		tx.setHorizontalAlignment(JLabel.CENTER);
+		tx.setEditable(false);
+		createHeart();                         
+     
+		for(int i=0;i<customRow;i++){
+			for(int j=0;j<customCol;j++){
+				btn[i][j] = new JButton(String.valueOf(arr[i][j]));
+				btn[i][j].setBackground(Color.PINK);
+				btn[i][j].setForeground(Color.PINK);
+				btn[i][j].setPreferredSize(new Dimension(10, 10));
+				Panel10.bntActionListener bn = new Panel10.bntActionListener(btn, arr, i, j, customRow);
+				btn[i][j].addActionListener(bn);
+				//btn[i][j].addMouseListener(new Panel10.bntMouseAdapter(tx, customRow, customCol, btn));
+				addGrid(btn[i][j], j, i+1, 1);
+			}
+		}
+		addGrid(tx, 0, 0, 20);         
+	}
+	public void createHeart() {
+		Random rand = new Random();
+		// custom 규격의 경우 mine의 적당한 수를 위해계산식을 세움.
+		int mine = (customRow * customCol) / 9;
+		for(int i=0;i<customRow;i++){
+			for(int j=0;j<customCol;j++)
+				arr[i][j]="0";
+		}
+		while (mine-- > 0) {
+			int row = rand.nextInt(customRow);
+			int col = rand.nextInt(customCol);
+			if (arr[row][col].equals("-1"))
+				mine++;
+			if (arr[row][col].equals("0"))
+				arr[row][col] = "-1";
+		}
+		for(int i=0;i<customRow;i++){
+			for(int j=0;j<customCol;j++){
+				int a = getMine(i, j);
+				if(arr[i][j].equals("0")&&a!=0)
+					arr[i][j] = String.valueOf(a);
+			}
+		}
+	}
+	public boolean isExist(int row, int col){
+		if(row<0||row>=customRow||col<0||col>=customCol)
+			return false;
+		return arr[row][col].equals("-1");
+	}
+	public int getMine(int row, int col){
+		int cnt = 0;
+		if(isExist(row-1, col-1)) cnt++;
+		if(isExist(row-1, col)) cnt++;
+		if(isExist(row-1, col+1)) cnt++;
+		if(isExist(row, col-1)) cnt++;
+		if(isExist(row, col+1)) cnt++;
+		if(isExist(row+1, col-1)) cnt++;
+		if(isExist(row+1, col)) cnt++;
+		if(isExist(row+1, col+1)) cnt++;
+
+		return cnt;
+	}
+	public void addGrid(Component c, int x, int y, int w){
+		gbc.gridx = x;
+		gbc.gridy = y;
+		gbc.gridwidth = w;
+		gbc.gridheight = 1;
+		grid.setConstraints(c, gbc);
+		add(c);
+	}
+}
+
 class JPanelChange extends JFrame{
     TitlePanel titlePanel = null;
     Panel10 panel10 = null;
     Panel15 panel15 = null;
     Panel20 panel20 = null;
-
+    PanelCustom panelCustom = null;
+    
     public void change(String panelName){
         getContentPane().removeAll();
         switch (panelName) {
-            case "titlePanel":
-                getContentPane().add(titlePanel);break;
-            case "panel10":
-                getContentPane().add(panel10);break;
-            case "panel15":
-                getContentPane().add(panel15);break;
-            default: getContentPane().add(panel20);break;
+        case "titlePanel":            	
+            getContentPane().add(titlePanel);               
+            break;  
+        case "panel10":            
+            getContentPane().add(panel10);              
+            break;    
+        case "panel15":            	
+            getContentPane().add(panel15);                
+            break; 
+        case "panel20":            
+        	getContentPane().add(panel20);            
+        	break;
+        default: 
+        	getContentPane().add(panelCustom);            	
+        	break;
         }
         revalidate();
         repaint();
@@ -466,16 +573,16 @@ public class heartsweeper extends JFrame {
         createMenu();
         panelSet.add(panelSet.titlePanel);
         panelSet.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        panelSet.setSize(700, 700);
+        panelSet.setSize(900, 700);
         panelSet.setVisible(true);
     }
 
     public void createMenu(){   // 메뉴 바 만드는 함수
         JMenuBar mb = new JMenuBar();
         String[] barName = {"Game", "Help"};
-        String[][] subItem = {{"Home", "10 x 10", "15 x 15", "20 x 20"}, {"도움말"}};
-        JMenu[] menu = new JMenu[3];
-        JMenuItem[][] menuItems = new JMenuItem[3][];
+        String[][] subItem = {{"Home", "10 x 10", "15 x 15", "20 x 20", "custom"}, {"도움말"}};
+        JMenu[] menu = new JMenu[4];
+        JMenuItem[][] menuItems = new JMenuItem[4][];
         for(int i=0;i<barName.length;i++){
             menu[i] = new JMenu(barName[i]);
             menu[i].setFont(new Font("맑은 고딕", Font.ITALIC, 13));
@@ -505,6 +612,7 @@ public class heartsweeper extends JFrame {
                 case "15 x 15": panelSet.change("panel15");break;
                 case "20 x 20": panelSet.change("panel20");break;
                 default:
+                	//도움말
                     JTextArea textArea = new JTextArea(6, 25);
                     String path = TitlePanel.class.getResource("").getPath();
                     StringBuilder line = new StringBuilder();
