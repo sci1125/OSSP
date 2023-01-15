@@ -145,9 +145,13 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
         JButton[][] btn;
         JTextField tx;
         int k;
+        int customRow, customCol;
+        
         public bntMouseAdapter(JTextField tx, int k, JButton[][] btn){
             this.tx = tx;
             this.k = k;
+            this.customRow = k;
+            this.customCol = k;
             this.btn = btn;
         }
         public void mouseClicked(MouseEvent e){
@@ -159,8 +163,8 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
                     tx.setText(String.valueOf(Integer.parseInt(tx.getText())-1));
                 }
                 int state=1;
-                for(int i=0;i<k;i++){
-                    for(int j=0;j<k;j++){
+                for(int i=0;i<customRow;i++){
+                    for(int j=0;j<customCol;j++){
                         if(btn[i][j].isEnabled())
                            state = 0;
                     }
@@ -174,6 +178,7 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
         String[][] arr;
         JButton[][] btn;
         int row, col, k;
+        private JPanel currentPanel;
         public bntActionListener(JButton[][] btn, String[][] arr, int row, int col, int k){
             this.btn = btn;
             this.arr = arr;
@@ -181,6 +186,11 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
             this.col = col;
             this.k = k;
         }
+        
+        public void setCurrentPanel(JPanel panel) {
+        	currentPanel = panel;
+        }
+        
         public void findAction(int row, int col, int k){
             if(row<0||row>=k||col<0||col>=k||arr[row][col].equals("-2")||arr[row][col].equals("-1"))
                 return;
@@ -471,7 +481,7 @@ class PanelCustom extends JPanel implements minesweeper{
 				btn[i][j].setPreferredSize(new Dimension(10, 10));
 				Panel10.bntActionListener bn = new Panel10.bntActionListener(btn, arr, i, j, customRow);
 				btn[i][j].addActionListener(bn);
-				//btn[i][j].addMouseListener(new Panel10.bntMouseAdapter(tx, customRow, customCol, btn));
+				btn[i][j].addMouseListener(new Panel10.bntMouseAdapter(tx, customRow, customCol, btn));
 				addGrid(btn[i][j], j, i+1, 1);
 			}
 		}
