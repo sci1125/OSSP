@@ -15,22 +15,22 @@ interface minesweeper{
 
 class TitlePanel extends JPanel{
     JPanelChange pc;
-    JButton[] btn = new JButton[3];
+    JButton[] btn = new JButton[4];
     public TitlePanel(JPanelChange pc){
         this.pc = pc;
         setLayout(null);
         JLabel lb = new JLabel("지뢰 찾기");
         lb.setFont(new Font("맑은 고딕", Font.PLAIN, 50));
-        lb.setBounds(180, 400, 320, 90);
+        lb.setBounds(270, 400, 320, 90);
         lb.setHorizontalAlignment(SwingConstants.CENTER);
         String path = TitlePanel.class.getResource("").getPath();
         ImageIcon im = new ImageIcon(path+"지뢰 모양"
         		+ ".png");
         JLabel imlb = new JLabel(im);
-        imlb.setBounds(0, 0, 700, 500);
-        String[] st = {"10 x 10", "15 x 15", "20 x 20"};
+        imlb.setBounds(0, 0, 900, 500);
+        String[] st = {"10 x 10", "15 x 15", "20 x 20", "custom"};
         int j=0;
-        for(int i=100;i<600;i+=180){
+        for(int i=100;i<800;i+=200){
             btn[j] = new JButton(st[j]);
             btn[j].setBounds(i, 550, 100, 30);
             btn[j].addActionListener(new MyActionListener());
@@ -46,8 +46,10 @@ class TitlePanel extends JPanel{
                 pc.change("panel10");
             else if(b.getText().equals("15 x 15"))
                 pc.change("panel15");
-            else
+            else if(b.getText().equals("20 x 20"))
                 pc.change("panel20");
+            else
+            	pc.change("custom");
         }
     }
 }
