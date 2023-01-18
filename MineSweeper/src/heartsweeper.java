@@ -75,7 +75,7 @@ class TitlePanel extends JPanel{
                          "가로 세로 값을 모두 입력해주세요", JOptionPane.OK_CANCEL_OPTION);
                 if (result == JOptionPane.OK_OPTION) {
                 	pc.panelCustom = new PanelCustom(pc, Integer.parseInt(yField.getText()), Integer.parseInt(xField.getText()));                	
-                	pc.change("custom size");
+                	pc.change("custom");
                 	pc.panelCustom.setListener();
                 	TimeSingleTone.getInstance().setControlThread(true);
                 }                        
@@ -608,7 +608,7 @@ class Panel20 extends JPanel implements minesweeper, GameTimeListener{
 	}
 }
 
-// custom size 로 지뢰찾기 그리드를 만드는 패널 클래스
+// custom로 지뢰찾기 그리드를 만드는 패널 클래스
 class PanelCustom extends JPanel implements minesweeper, GameTimeListener{
     JPanelChange pc;
     GridBagLayout grid;
@@ -833,8 +833,8 @@ public class heartsweeper extends JFrame {
                 	panelSet.panel20.setListener();
                 	TimeSingleTone.getInstance().setControlThread(true);
                 	break;
-                case "custom size":
-                	System.out.println("Selected Menu : custom size");
+                case "custom":
+                	System.out.println("Selected Menu : custom");
                 	JTextField xField = new JTextField(5);
                     JTextField yField = new JTextField(5);
 
@@ -850,7 +850,7 @@ public class heartsweeper extends JFrame {
                              "가로 세로 값을 모두 입력해주세요", JOptionPane.OK_CANCEL_OPTION);
                     if (result == JOptionPane.OK_OPTION) {
                     	panelSet.panelCustom = new PanelCustom(panelSet, Integer.parseInt(yField.getText()), Integer.parseInt(xField.getText()));
-                    	panelSet.change("custom size");
+                    	panelSet.change("custom");
                     	panelSet.panelCustom.setListener();
                     	TimeSingleTone.getInstance().setControlThread(true);
                        System.out.println("가로 (Row) value: " + yField.getText());
