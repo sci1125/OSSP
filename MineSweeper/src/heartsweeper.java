@@ -13,7 +13,7 @@ interface minesweeper{
     void addGrid(Component c, int x, int y, int w);
 }
 
-//메인 화면
+// 메인 화면
 class TitlePanel extends JPanel{
     JPanelChange pc;
     JButton[] btn = new JButton[4];
@@ -42,64 +42,88 @@ class TitlePanel extends JPanel{
     }
     class MyActionListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
-        	JButton b = (JButton)e.getSource();
-        	if(b.getText().equals("10 x 10")) {
+            JButton b = (JButton)e.getSource();
+            if(b.getText().equals("10 x 10")) {
             	pc.change("panel10");
+            	pc.panel10.setListener();
+                TimeSingleTone.getInstance().setControlThread(true);
             }                
             else if(b.getText().equals("15 x 15")) {
             	pc.change("panel15");
+            	pc.panel15.setListener();
+                TimeSingleTone.getInstance().setControlThread(true);
             }                
             else if (b.getText().equals("20 x 20")) {         
             	pc.change("panel20");
+            	pc.panel20.setListener();
+            	TimeSingleTone.getInstance().setControlThread(true);
             }                
             else {
             	// custom grid case 
             	JTextField xField = new JTextField(5);
                 JTextField yField = new JTextField(5);
+
                 JPanel myPanel = new JPanel();
                 myPanel.add(new JLabel("가로 :"));
                 myPanel.add(xField);
                 myPanel.add(Box.createHorizontalStrut(15)); // a spacer
                 myPanel.add(new JLabel("세로 :"));
                 myPanel.add(yField);
+
                 // 가로 세로 규격을 묻는 다이얼로그
                 int result = JOptionPane.showConfirmDialog(null, myPanel, 
                          "가로 세로 값을 모두 입력해주세요", JOptionPane.OK_CANCEL_OPTION);
                 if (result == JOptionPane.OK_OPTION) {
                 	pc.panelCustom = new PanelCustom(pc, Integer.parseInt(yField.getText()), Integer.parseInt(xField.getText()));                	
                 	pc.change("custom size");
+                	pc.panelCustom.setListener();
+                	TimeSingleTone.getInstance().setControlThread(true);
                 }                        
-            }
+            }            
         }
     }
 }
 
 // 10 x 10 지뢰찾기
-class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 화면 구성 */
-	JPanelChange pc;
+class Panel10 extends JPanel implements minesweeper, GameTimeListener{   /* 각각 지뢰찾기 화면 구성 */
+    JPanelChange pc;
     GridBagLayout grid;
     GridBagConstraints gbc = new GridBagConstraints();
     JButton[][] btn = new JButton[10][10];
     String[][] arr = new String[10][10];
-    private JTextField textFieldPlayTime;
+    private JTextField textFieldPlayTime;    
+    TimeSingleTone timeSingleTone;
     
     public Panel10(JPanelChange pc){   
         grid = new GridBagLayout();
         setLayout(grid);
-        this.pc = pc;       
+        this.pc = pc;
+        timeSingleTone = TimeSingleTone.getInstance();        
         setScreen();        
     }    
     
+    public void setListener() {
+    	timeSingleTone.setListener(this);
+    }
+    
     @Override
-    public void setScreen(){
+    public void setScreen(){    	
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx=1.0;
         gbc.weighty=1.0;
+
         JTextField tx = new JTextField(20);
         tx.setText("9");
         tx.setHorizontalAlignment(JLabel.CENTER);
         tx.setEditable(false);
         createHeart();
+                
+        timeSingleTone.setUpdateTime(0);
+        
+        textFieldPlayTime = new JTextField(20);
+        textFieldPlayTime.setText("Play Time : 0");
+        textFieldPlayTime.setHorizontalAlignment(JLabel.CENTER);
+        textFieldPlayTime.setEditable(false);                                   
         
         for(int i=0;i<10;i++){
             for(int j=0;j<10;j++){
@@ -114,8 +138,9 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
             }
         }
         addGrid(tx, 0, 0, 10);
+        addGrid(textFieldPlayTime, 0, 100, 15);                      
     }
-    // 지뢰 생성
+    
     public void createHeart() {
         Random rand = new Random();
         int mine = 9;
@@ -139,11 +164,13 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
             }
         }
     }
+    
     public boolean isExist(int row, int col){
         if(row<0||row>=10||col<0||col>=10)
             return false;
         return arr[row][col].equals("-1");
     }
+    
     public int getMine(int row, int col){
         int cnt = 0;
         if(isExist(row-1, col-1)) cnt++;
@@ -157,6 +184,7 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
 
         return cnt;
     }
+    
     public void addGrid(Component c, int x, int y, int w){
         gbc.gridx = x;
         gbc.gridy = y;
@@ -165,18 +193,21 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
         grid.setConstraints(c, gbc);
         add(c);
     }
+    
     static class bntMouseAdapter extends MouseAdapter{
         JButton[][] btn;
         JTextField tx;
         int k;
-        int customRow, customCol;
-        
+        int customRow, customCol;           
+        TimeSingleTone timeSingleTone;
+      
         public bntMouseAdapter(JTextField tx, int k, JButton[][] btn){
             this.tx = tx;
             this.k = k;
             this.customRow = k;
             this.customCol = k;
-            this.btn = btn;
+            this.btn = btn;            
+            timeSingleTone = TimeSingleTone.getInstance();
         }
         
         public bntMouseAdapter(JTextField tx, int customRow, int customCol, JButton[][] btn){
@@ -184,11 +215,12 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
             this.customRow = customRow;
             this.customCol = customCol;
             this.btn = btn;
+            timeSingleTone = TimeSingleTone.getInstance();
         }
         
         public void mouseClicked(MouseEvent e){
             if(e.getButton()==MouseEvent.BUTTON3){
-                JButton b = (JButton)e.getSource();
+            	JButton b = (JButton)e.getSource();
                 if(!tx.getText().equals("0")&&b.isEnabled()){
                     b.setEnabled(false);
                     bntActionListener.setIcon(b, "bow.png");
@@ -201,13 +233,27 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
                            state = 0;
                     }
                 }
+                if(state == 1) {
+                	// stop thread
+                	timeSingleTone.setControlThread(false);                
+                	JOptionPane.showMessageDialog(null, "Play Time : " + String.valueOf(timeSingleTone.getUpdateTime()) + "\n지뢰를 모두 찾았습니다!", "안내", JOptionPane.INFORMATION_MESSAGE);
+                	timeSingleTone = null;
+                }                    
             }
         }
     }
+    @Override
+	public void onTimeTick(int timeSecond) {		
+		if (textFieldPlayTime != null) {
+			textFieldPlayTime.setText("Play Time : " + String.valueOf(timeSecond));
+		}				
+	}
+    
     static class bntActionListener implements ActionListener{
         String[][] arr;
         JButton[][] btn;
-        int row, col, k;
+        int row, col, k;        
+        TimeSingleTone timeSingleTone; //플레이 시간을 저장해주고 있는 싱글톤 패턴의 클래스
         private JPanel currentPanel;
         
         public bntActionListener(JButton[][] btn, String[][] arr, int row, int col, int k){
@@ -215,14 +261,17 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
             this.arr = arr;
             this.row = row;
             this.col = col;
-            this.k = k;
+            this.k = k;            
+            
+            // 싱글톤 초기화
+            timeSingleTone = TimeSingleTone.getInstance();
         }
         
         public void setCurrentPanel(JPanel panel) {
         	currentPanel = panel;
         }
-        
-        public void findAction	(int row, int col, int k){
+            
+        public void findAction(int row, int col, int k){
             if(row<0||row>=k||col<0||col>=k||arr[row][col].equals("-2")||arr[row][col].equals("-1"))
                 return;
             if(arr[row][col].equals("0")){
@@ -245,6 +294,7 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
                 arr[row][col] = "-2";
             }
         }
+        
         private static Icon resizeIcon(ImageIcon icon, int resizedWidth, int resizedHeight) {
             Image img = icon.getImage();
             Image resizedImage = img.getScaledInstance(resizedWidth, resizedHeight,  java.awt.Image.SCALE_SMOOTH);
@@ -264,19 +314,26 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
             JButton b = (JButton)e.getSource();
             b.setEnabled(false);
             if(e.getActionCommand().equals("-1")){
-            	setIcon(b, "지뢰.png");          
-                 
-            	// 싱글톤 클래스로부터 저장되어있던 시간 값 가져와서 다이얼로그에 표시
-            	int result = JOptionPane.showConfirmDialog(null, "다시하시겠습니까?", "안내", JOptionPane.YES_NO_OPTION);
-            	if(result!=0)  {
-            		System.exit(0);
-            	}                	
-            	else {
-            		JComponent comp = (JComponent) e.getSource();
-                 	Window win = SwingUtilities.getWindowAncestor(comp);
-                 	win.dispose();
-                 	new heartsweeper();
-            	}
+                setIcon(b, "지뢰.png");
+                
+               // 타임 스레드 종료
+               timeSingleTone.setControlThread(false);               
+                
+                // 싱글톤 클래스로부터 저장되어있던 시간 값 가져와서 다이얼로그에 표시
+                int result = JOptionPane.showConfirmDialog(null, "Play Time : " + String.valueOf(timeSingleTone.getUpdateTime()) + "\n다시하시겠습니까?", "안내", JOptionPane.YES_NO_OPTION);
+                if(result!=0)  {
+                	timeSingleTone.setUpdateTime(0);
+                	timeSingleTone = null;
+                    System.exit(0);
+                }                	
+                else {
+                	timeSingleTone.setUpdateTime(0);
+                	timeSingleTone = null;
+                	JComponent comp = (JComponent) e.getSource();
+                	Window win = SwingUtilities.getWindowAncestor(comp);
+                	win.dispose();
+                    new heartsweeper();
+                }                	
             }
             else if(e.getActionCommand().equals("0")) findAction(row, col, k);
             else{
@@ -299,29 +356,43 @@ class Panel10 extends JPanel implements minesweeper{   /* 각각 지뢰찾기 �
                 }
             }
             if(state == 1) {
+            	timeSingleTone.setControlThread(false);
+            	JOptionPane.showMessageDialog(null, "Play Time : " + String.valueOf(timeSingleTone.getUpdateTime()) + "\n지뢰를 모두 찾았습니다!", "안내", JOptionPane.INFORMATION_MESSAGE);
+            	timeSingleTone.setUpdateTime(0);
+            	timeSingleTone = null;
             	JComponent comp = (JComponent) e.getSource();
           	    Window win = SwingUtilities.getWindowAncestor(comp);
           	    win.dispose();
                 new heartsweeper();
-            }
+            }                
         }
     }
+	
 }
 
 // 15 x 15 지뢰찾기
-class Panel15 extends JPanel implements minesweeper{
+class Panel15 extends JPanel implements minesweeper, GameTimeListener{
     JPanelChange pc;
     GridBagLayout grid;
     GridBagConstraints gbc = new GridBagConstraints();
     JButton[][] btn = new JButton[15][15];
     String[][] arr = new String[15][15];
+    private TimeSingleTone timeSingleTone;
+    JTextField textFieldPlayTime;    
     
     public Panel15(JPanelChange pc){
         grid = new GridBagLayout();
         setLayout(grid);
         this.pc = pc;
-        setScreen();
+        // 싱글톤 객체 초기화
+        timeSingleTone = TimeSingleTone.getInstance();        
+        setScreen();        
     }
+    
+    public void setListener() {
+    	timeSingleTone.setListener(this);
+    }
+   
     
     @Override
     public void setScreen(){
@@ -334,6 +405,14 @@ class Panel15 extends JPanel implements minesweeper{
         tx.setHorizontalAlignment(JLabel.CENTER);
         tx.setEditable(false);
         createHeart();
+               
+        timeSingleTone.setUpdateTime(0);
+
+        textFieldPlayTime = new JTextField(20);
+        textFieldPlayTime.setText("Play Time : 0");
+        textFieldPlayTime.setHorizontalAlignment(JLabel.CENTER);
+        textFieldPlayTime.setEditable(false);                
+       
         for(int i=0;i<15;i++){
             for(int j=0;j<15;j++){
                 btn[i][j] = new JButton(String.valueOf(arr[i][j]));
@@ -347,8 +426,9 @@ class Panel15 extends JPanel implements minesweeper{
             }
         }
         addGrid(tx, 0, 0, 15);
+        addGrid(textFieldPlayTime, 0, 100, 15);                     
     }
-    // 지뢰 생성
+    
     public void createHeart() {
         Random rand = new Random();
         int mine = 35;
@@ -372,11 +452,13 @@ class Panel15 extends JPanel implements minesweeper{
             }
         }
     }
+    
     public boolean isExist(int row, int col){
         if(row<0||row>=15||col<0||col>=15)
             return false;
         return arr[row][col].equals("-1");
     }
+    
     public int getMine(int row, int col){
         int cnt = 0;
         if(isExist(row-1, col-1)) cnt++;
@@ -390,6 +472,7 @@ class Panel15 extends JPanel implements minesweeper{
 
         return cnt;
     }
+    
     public void addGrid(Component c, int x, int y, int w){
         gbc.gridx = x;
         gbc.gridy = y;
@@ -398,22 +481,37 @@ class Panel15 extends JPanel implements minesweeper{
         grid.setConstraints(c, gbc);
         add(c);
     }
+
+    @Override
+	public void onTimeTick(int timeSecond) {
+		if (textFieldPlayTime != null) {
+			textFieldPlayTime.setText("Play Time : " + String.valueOf(timeSecond));
+		}				
+	}
 }
 
-// 20 x 20 지뢰 찾기
-class Panel20 extends JPanel implements minesweeper{
+//20 x 20 지뢰찾기
+class Panel20 extends JPanel implements minesweeper, GameTimeListener{
     JPanelChange pc;
     GridBagLayout grid;
     GridBagConstraints gbc = new GridBagConstraints();
     JButton[][] btn = new JButton[20][20];
     String[][] arr = new String[20][20];
+    TimeSingleTone timeSingleTone;
+    JTextField textFieldPlayTime;
     
     public Panel20(JPanelChange pc){
         grid = new GridBagLayout();
         setLayout(grid);
         this.pc = pc;
+        timeSingleTone = TimeSingleTone.getInstance();        
         setScreen();
     }
+    
+    public void setListener() {
+    	timeSingleTone.setListener(this);
+    }
+    
     @Override
     public void setScreen(){
         gbc.fill = GridBagConstraints.BOTH;
@@ -425,6 +523,14 @@ class Panel20 extends JPanel implements minesweeper{
         tx.setHorizontalAlignment(JLabel.CENTER);
         tx.setEditable(false);
         createHeart();
+                
+        timeSingleTone.setUpdateTime(0);
+        
+        textFieldPlayTime = new JTextField(20);
+        textFieldPlayTime.setText("Play Time : 0");
+        textFieldPlayTime.setHorizontalAlignment(JLabel.CENTER);
+        textFieldPlayTime.setEditable(false);                
+        
         for(int i=0;i<20;i++){
             for(int j=0;j<20;j++){
                 btn[i][j] = new JButton(String.valueOf(arr[i][j]));
@@ -438,7 +544,9 @@ class Panel20 extends JPanel implements minesweeper{
             }
         }
         addGrid(tx, 0, 0, 20);
+        addGrid(textFieldPlayTime, 0, 100, 15);       
     }
+    
     public void createHeart() {
         Random rand = new Random();
         int mine = 45;
@@ -462,11 +570,13 @@ class Panel20 extends JPanel implements minesweeper{
             }
         }
     }
+    
     public boolean isExist(int row, int col){
         if(row<0||row>=20||col<0||col>=20)
             return false;
         return arr[row][col].equals("-1");
     }
+    
     public int getMine(int row, int col){
         int cnt = 0;
         if(isExist(row-1, col-1)) cnt++;
@@ -480,6 +590,7 @@ class Panel20 extends JPanel implements minesweeper{
 
         return cnt;
     }
+    
     public void addGrid(Component c, int x, int y, int w){
         gbc.gridx = x;
         gbc.gridy = y;
@@ -488,10 +599,17 @@ class Panel20 extends JPanel implements minesweeper{
         grid.setConstraints(c, gbc);
         add(c);
     }
+
+    @Override
+	public void onTimeTick(int timeSecond) {
+		if (textFieldPlayTime != null) {
+			textFieldPlayTime.setText("Play Time : " + String.valueOf(timeSecond));
+		}				
+	}
 }
 
-//custom size 로 지뢰찾기 그리드를 만드는 패널 클래스
-class PanelCustom extends JPanel implements minesweeper{
+// custom size 로 지뢰찾기 그리드를 만드는 패널 클래스
+class PanelCustom extends JPanel implements minesweeper, GameTimeListener{
     JPanelChange pc;
     GridBagLayout grid;
     GridBagConstraints gbc = new GridBagConstraints();
@@ -499,6 +617,7 @@ class PanelCustom extends JPanel implements minesweeper{
     String[][] arr;
     int customRow = 0; // 가로 규격 Row
     int customCol = 0; // 세로 규격 Column
+    TimeSingleTone timeSingleTone;
     JTextField textFieldPlayTime;
     
     public PanelCustom(JPanelChange pc, int row, int col){
@@ -508,8 +627,13 @@ class PanelCustom extends JPanel implements minesweeper{
         customRow = row;
         customCol = col;
         btn = new JButton[customRow][customCol];
-        arr = new String[customRow][customCol];      
+        arr = new String[customRow][customCol];
+        timeSingleTone = TimeSingleTone.getInstance();        
         setScreen();
+    }
+    
+    public void setListener() {
+    	timeSingleTone.setListener(this);
     }
     
     @Override
@@ -517,11 +641,19 @@ class PanelCustom extends JPanel implements minesweeper{
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx=1.0;
         gbc.weighty=1.0;
+
         JTextField tx = new JTextField(20);
         tx.setText(String.valueOf((customRow * customCol) / 9));
         tx.setHorizontalAlignment(JLabel.CENTER);
         tx.setEditable(false);
-        createHeart();                         
+        createHeart();
+               
+        timeSingleTone.setUpdateTime(0);
+        
+        textFieldPlayTime = new JTextField(20);
+        textFieldPlayTime.setText("Play Time : 0");
+        textFieldPlayTime.setHorizontalAlignment(JLabel.CENTER);
+        textFieldPlayTime.setEditable(false);                             
         
         for(int i=0;i<customRow;i++){
             for(int j=0;j<customCol;j++){
@@ -535,9 +667,9 @@ class PanelCustom extends JPanel implements minesweeper{
                 addGrid(btn[i][j], j, i+1, 1);
             }
         }
-        addGrid(tx, 0, 0, 20);             
+        addGrid(tx, 0, 0, 20);
+        addGrid(textFieldPlayTime, 0, 100, 15);       
     }
-    
     public void createHeart() {
         Random rand = new Random();
         // custom 규격의 경우 mine의 적당한 수를 위해계산식을 세움.
@@ -562,11 +694,13 @@ class PanelCustom extends JPanel implements minesweeper{
             }
         }
     }
+    
     public boolean isExist(int row, int col){
         if(row<0||row>=customRow||col<0||col>=customCol)
             return false;
         return arr[row][col].equals("-1");
     }
+    
     public int getMine(int row, int col){
         int cnt = 0;
         if(isExist(row-1, col-1)) cnt++;
@@ -577,8 +711,10 @@ class PanelCustom extends JPanel implements minesweeper{
         if(isExist(row+1, col-1)) cnt++;
         if(isExist(row+1, col)) cnt++;
         if(isExist(row+1, col+1)) cnt++;
+
         return cnt;
     }
+    
     public void addGrid(Component c, int x, int y, int w){
         gbc.gridx = x;
         gbc.gridy = y;
@@ -587,6 +723,13 @@ class PanelCustom extends JPanel implements minesweeper{
         grid.setConstraints(c, gbc);
         add(c);
     }
+
+    @Override
+	public void onTimeTick(int timeSecond) {
+		if (textFieldPlayTime != null) {
+			textFieldPlayTime.setText("Play Time : " + String.valueOf(timeSecond));
+		}				
+	}
 }
 
 class JPanelChange extends JFrame{
@@ -594,26 +737,27 @@ class JPanelChange extends JFrame{
     Panel10 panel10 = null;
     Panel15 panel15 = null;
     Panel20 panel20 = null;
-    PanelCustom panelCustom = null;
-    
+    PanelCustom panelCustom = null;  
+
     public void change(String panelName){
         getContentPane().removeAll();
         switch (panelName) {
-        case "titlePanel":            	
-            getContentPane().add(titlePanel);               
-            break;  
-        case "panel10":            
-            getContentPane().add(panel10);              
-            break;    
-        case "panel15":            	
-            getContentPane().add(panel15);                
-            break; 
-        case "panel20":            
-        	getContentPane().add(panel20);            
-        	break;
-        default: 
-        	getContentPane().add(panelCustom);            	
-        	break;
+            case "titlePanel":
+            	TimeSingleTone.getInstance().setControlThread(false);            	
+                getContentPane().add(titlePanel);               
+                break;
+            case "panel10":            
+                getContentPane().add(panel10);              
+                break;
+            case "panel15":            	
+                getContentPane().add(panel15);                
+                break;
+            case "panel20":            
+            	getContentPane().add(panel20);            
+            	break;
+            default: 
+            	getContentPane().add(panelCustom);            	
+            	break;
         }
         revalidate();
         repaint();
@@ -662,17 +806,59 @@ public class heartsweeper extends JFrame {
 
     class MenuActionListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
-            String cmd = e.getActionCommand();
-            panelSet.panel10 = new Panel10(panelSet);
-            panelSet.panel15 = new Panel15(panelSet);
-            panelSet.panel20 = new Panel20(panelSet);
+            String cmd = e.getActionCommand();                                   
+            
             switch (cmd) {
-                case "new game": panelSet.change("titlePanel");break;
-                case "10 x 10": panelSet.change("panel10");break;
-                case "15 x 15": panelSet.change("panel15");break;
-                case "20 x 20": panelSet.change("panel20");break;
+                case "Home":                 	
+                	panelSet.change("titlePanel");                	
+                	break;
+                case "10 x 10":
+                	System.out.println("Selected Menu : 10 x 10");
+                	panelSet.panel10 = new Panel10(panelSet);
+                	panelSet.change("panel10");
+                	panelSet.panel10.setListener();
+                	TimeSingleTone.getInstance().setControlThread(true);
+                	break;
+                case "15 x 15":
+                	System.out.println("Selected Menu : 15 x 15");
+                	panelSet.panel15 = new Panel15(panelSet);
+                	panelSet.change("panel15");
+                	panelSet.panel15.setListener();
+                	TimeSingleTone.getInstance().setControlThread(true);
+                	break;
+                case "20 x 20":
+                	System.out.println("Selected Menu : 20 x 20");
+                	panelSet.panel20 = new Panel20(panelSet);
+                	panelSet.change("panel20");
+                	panelSet.panel20.setListener();
+                	TimeSingleTone.getInstance().setControlThread(true);
+                	break;
+                case "custom size":
+                	System.out.println("Selected Menu : custom size");
+                	JTextField xField = new JTextField(5);
+                    JTextField yField = new JTextField(5);
+
+                    JPanel myPanel = new JPanel();
+                    myPanel.add(new JLabel("가로 :"));
+                    myPanel.add(xField);
+                    myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+                    myPanel.add(new JLabel("세로 :"));
+                    myPanel.add(yField);
+
+                    // 좌상단 메뉴에서 커스텀 규격을 선택 했을 때 규격을 묻는 다이얼로그 표시 
+                    int result = JOptionPane.showConfirmDialog(null, myPanel, 
+                             "가로 세로 값을 모두 입력해주세요", JOptionPane.OK_CANCEL_OPTION);
+                    if (result == JOptionPane.OK_OPTION) {
+                    	panelSet.panelCustom = new PanelCustom(panelSet, Integer.parseInt(yField.getText()), Integer.parseInt(xField.getText()));
+                    	panelSet.change("custom size");
+                    	panelSet.panelCustom.setListener();
+                    	TimeSingleTone.getInstance().setControlThread(true);
+                       System.out.println("가로 (Row) value: " + yField.getText());
+                       System.out.println("세로 (Col) value: " + xField.getText());
+                    }
+                	break;
                 default:
-                	//도움말
+                	// 도움말
                     JTextArea textArea = new JTextArea(6, 25);
                     String path = TitlePanel.class.getResource("").getPath();
                     StringBuilder line = new StringBuilder();
@@ -685,7 +871,6 @@ public class heartsweeper extends JFrame {
                             line.append((char) k);
                         }
                         r.close();
-
                     } catch (IOException t) {
                         t.printStackTrace();
                     }
